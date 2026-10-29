@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据总览 - 校园活动报名系统</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="header">
+    <h1>🎓 <span class="grad-text">校园活动报名系统</span> · 管理后台</h1>
+    <div class="nav">
+        <a th:href="@{/index}" class="active">📊 数据总览</a>
+        <a th:href="@{/activity/list}">📅 活动管理</a>
+        <a th:href="@{/registration/list}">📋 报名管理</a>
+    </div>
+    <div class="user-info">
+        <span class="user-chip admin">👨‍💼 <span th:text="${user.realName}"></span></span>
+        <a th:href="@{/logout}" class="btn btn-danger">退出</a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="welcome">
+        <div class="welcome-content">
+            <h2>欢迎回来 👋 <span th:text="${user.realName}"></span></h2>
+            <p>今天也是充满活力的一天！以下是系统最新的数据概览，快来看看校园活动的火爆程度吧 📈</p>
+        </div>
+        <div class="welcome-emoji">🎯</div>
+    </div>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="icon-circle">📅</div>
+            <div class="number" th:text="${activityCount}">0</div>
+            <div class="label">活动总数</div>
+        </div>
+        <div class="stat-card">
+            <div class="icon-circle">🚀</div>
+            <div class="number" th:text="${publishedCount}">0</div>
+            <div class="label">进行中活动</div>
+        </div>
+        <div class="stat-card">
+            <div class="icon-circle">🎫</div>
+            <div class="number" th:text="${registrationCount}">0</div>
+            <div class="label">有效报名数</div>
+        </div>
+        <div class="stat-card">
+            <div class="icon-circle">👥</div>
+            <div class="number" th:text="${userCount}">0</div>
+            <div class="label">注册用户数</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <h3>🎯 最近创建的活动</h3>
+            <a th:href="@{/activity/list}">查看全部 →</a>
+        </div>
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>活动标题</th>
+                <th>地点</th>
+                <th>开始时间</th>
+                <th>状态</th>
+                <th>操作</th>
+            </tr>
+            <tr th:each="a : ${recentActivities}" th:if="${recentActivities != null and !recentActivities.isEmpty()}">
+                <td th:text="${a.id}"></td>
+                <td style="font-weight:600;" th:text="${a.title}"></td>
+                <td th:text="${a.location}"></td>
+                <td th:text="${a.startTime != null} ? ${#dates.format(a.startTime, 'yyyy-MM-dd HH:mm')} : '-'"></td>
+                <td>
+                    <span class="status-tag status-published" th:if="${a.status == 'published'}">已发布</span>
+                    <span class="status-tag status-ongoing" th:if="${a.status == 'ongoing'}">进行中</span>
+                    <span class="status-tag status-ended" th:if="${a.status == 'ended'}">已结束</span>
+                    <span class="status-tag status-offline" th:if="${a.status == 'offline'}">已下线</span>
+                </td>
+                <td>
+                    <a th:href="@{/activity/detail(id=${a.id})}" style="color:#667eea;text-decoration:none;margin-right:12px;font-weight:500;">详情</a>
+                    <a th:href="@{/activity/toEdit(id=${a.id})}" style="color:#f5576c;text-decoration:none;font-weight:500;">编辑</a>
+                </td>
+            </tr>
+        </table>
+        <div th:if="${recentActivities == null or recentActivities.isEmpty()}" class="empty">
+            <div class="icon">📭</div>
+            <h3>暂无活动数据</h3>
+            <p>快去发布第一个活动吧！</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

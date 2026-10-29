@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的报名 - 校园活动报名系统</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="header">
+    <a th:if="${user != null and user.role == 'admin'}" th:href="@{/index}" class="back-btn" title="返回首页">‹</a>
+    <a th:if="${user != null and user.role == 'student'}" th:href="@{/home}" class="back-btn" title="返回主页">‹</a>
+    <h1>🎓 <span class="grad-text">校园活动报名系统</span></h1>
+    <div class="user-info">
+        <span class="user-chip student">✨ <span th:text="${user.realName}"></span></span>
+        <a th:href="@{/logout}" class="btn btn-danger">退出</a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="page-hero hero-pink">
+        <div class="page-hero-content">
+            <h2>🎫 我的报名</h2>
+            <p>查看和管理你报名的所有精彩活动～</p>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <table th:if="${registrationList != null and !registrationList.isEmpty()}">
+        <tr>
+            <th>报名时间</th>
+            <th>活动标题</th>
+            <th>状态</th>
+            <th>备注</th>
+            <th>操作</th>
+        </tr>
+        <tr th:each="reg : ${registrationList}">
+            <td th:text="${reg.registerTime != null} ? ${#dates.format(reg.registerTime, 'yyyy-MM-dd HH:mm')} : '-'"></td>
+            <td style="font-weight:600;color:#1d1d1f;" th:text="${reg.activityTitle}"></td>
+            <td>
+                <span class="status-tag status-registered" th:if="${reg.status == 'registered'}">⏳ 待审核</span>
+                <span class="status-tag status-approved" th:if="${reg.status == 'approved'}">✅ 已通过</span>
+                <span class="status-tag status-rejected" th:if="${reg.status == 'rejected'}">❌ 已拒绝</span>
+                <span class="status-tag status-cancelled" th:if="${reg.status == 'cancelled'}">🚫 已取消</span>
+            </td>
+            <td th:text="${reg.remark} != null ? ${reg.remark} : '-'"></td>
+            <td>
+                <a th:href="@{/activity/detail(id=${reg.activityId})}" style="color:#667eea;text-decoration:none;margin-right:14px;font-weight:600;">查看活动</a>
+                <a th:if="${reg.status == 'registered' or reg.status == 'approved'}" th:href="@{/registration/cancel(id=${reg.id})}" class="cancel-reg-btn" th:data-act-title="${reg.activityTitle}">取消报名</a>
+            </td>
+        </tr>
+    </table>
+
+    <div th:if="${registrationList == null or registrationList.isEmpty()}" class="empty">
+        <div class="icon bounce">🎯</div>
+        <h3>还没有报名任何活动</h3>
+        <p>去活动广场看看有什么感兴趣的吧～</p>
+        <a th:href="@{/activity/list}" class="btn btn-primary">🚀 前往活动广场</a>
+    </div>
+</div>
+
+<div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-dialog">
+        <div class="confirm-icon danger">🚫</div>
+        <div class="confirm-title">取消报名</div>
+        <div class="confirm-message" id="confirmMessage">确定取消该活动的报名吗？</div>
+        <div class="confirm-btns">
+            <button class="confirm-cancel" id="confirmCancel">再想想</button>
+            <button class="confirm-ok danger" id="confirmOk">确认取消</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function(){
+    var overlay = document.getElementById('confirmOverlay');
+    var msg = document.getElementById('confirmMessage');
+    var okBtn = document.getElementById('confirmOk');
+    var cancelBtn = document.getElementById('confirmCancel');
+    var currentHref = '';
+    document.querySelectorAll('.cancel-reg-btn').forEach(function(btn){
+        btn.addEventListener('click', function(e){
+            e.preventDefault();
+            var title = btn.getAttribute('data-act-title') || '该活动';
+            msg.innerHTML = '确定取消「<strong>' + title + '</strong>」的报名吗？<br>取消后需要重新报名才能参加。';
+            currentHref = btn.getAttribute('href');
+            overlay.classList.add('show');
+        });
+    });
+    function close(){ overlay.classList.remove('show'); }
+    cancelBtn.addEventListener('click', close);
+    overlay.addEventListener('click', function(e){ if(e.target === overlay) close(); });
+    document.addEventListener('keydown', function(e){ if(e.key === 'Escape') close(); });
+    okBtn.addEventListener('click', function(){
+        if(currentHref) window.location.href = currentHref;
+        close();
+    });
+})();
+</script>
+</body>
+</html>

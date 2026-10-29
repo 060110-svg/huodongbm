@@ -1,0 +1,22 @@
+# 编译产物
+target/
+out/
+*.class
+
+# IDE 本地配置（IntelliJ IDEA）
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# 运行时数据
+uploads/
+*.log
+cookie.txt
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 数据库备份
+*.sql.bak

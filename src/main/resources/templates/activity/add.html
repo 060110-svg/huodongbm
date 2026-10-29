@@ -1,0 +1,94 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发布活动 - 校园活动报名系统</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="header">
+    <a th:href="@{/activity/list}" class="back-btn" title="返回活动列表">‹</a>
+    <h1>🎓 <span class="grad-text">校园活动报名系统</span></h1>
+    <div class="user-info">
+        <span class="user-chip admin">👨‍💼 <span th:text="'管理员：' + ${user.realName}"></span></span>
+        <a th:href="@{/logout}" class="btn btn-danger">退出</a>
+    </div>
+</div>
+
+<div class="container-narrow">
+    <div class="page-hero hero-primary">
+        <div class="page-hero-content">
+            <h2>➕ 发布新活动</h2>
+            <p>创建一场精彩的校园活动，邀请同学们一起参加！</p>
+        </div>
+    </div>
+
+    <div class="form-card">
+        <form th:action="@{/activity/save}" method="post" th:object="${activity}" enctype="multipart/form-data">
+            <div class="form-item">
+                <label>活动标题<span class="required">*</span></label>
+                <input type="text" name="title" required placeholder="请输入活动名称">
+            </div>
+
+            <div class="form-item">
+                <label>活动描述</label>
+                <textarea name="description" rows="5" placeholder="详细描述活动内容、流程、注意事项等"></textarea>
+            </div>
+
+            <div class="form-item">
+                <label>活动地点</label>
+                <input type="text" name="location" placeholder="如：教学楼A301">
+            </div>
+
+            <div class="form-row">
+                <div class="form-item">
+                    <label>开始时间</label>
+                    <input type="datetime-local" name="startTime">
+                </div>
+                <div class="form-item">
+                    <label>结束时间</label>
+                    <input type="datetime-local" name="endTime">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-item">
+                    <label>报名截止</label>
+                    <input type="datetime-local" name="deadline">
+                </div>
+                <div class="form-item">
+                    <label>最大人数</label>
+                    <input type="number" name="maxParticipants" value="0" min="0" placeholder="0 表示不限">
+                </div>
+            </div>
+
+            <div class="form-item">
+                <label>活动状态</label>
+                <select name="status">
+                    <option value="published">🔥 已发布（可报名）</option>
+                    <option value="ongoing">🚀 进行中</option>
+                    <option value="ended">✅ 已结束</option>
+                    <option value="offline">🚫 已下线</option>
+                </select>
+            </div>
+
+            <div class="form-item">
+                <label>封面图</label>
+                <div class="upload-area">
+                    <div style="font-size:36px;margin-bottom:8px;">🖼️</div>
+                    <div style="font-weight:600;margin-bottom:6px;">点击或拖拽上传封面图片</div>
+                    <div style="font-size:12px;color:#86868b;margin-bottom:12px;">支持 JPG / PNG / GIF / WEBP，最大 10MB</div>
+                    <input type="file" name="coverFile" accept="image/*">
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a th:href="@{/activity/list}" class="btn btn-secondary">← 取消返回</a>
+                <button type="submit" class="btn btn-primary">🚀 立即发布</button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>
