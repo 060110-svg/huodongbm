@@ -2,6 +2,7 @@
 target/
 out/
 *.class
+*.original
 
 # IDE 本地配置（IntelliJ IDEA）
 .idea/
