@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>报名管理 - 校园活动报名系统</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="header">
+    <a th:href="@{/index}" class="back-btn" title="返回首页">‹</a>
+    <h1>🎓 <span class="grad-text">校园活动报名系统</span></h1>
+    <div class="user-info">
+        <span class="user-chip admin">👨‍💼 <span th:text="'管理员：' + ${user.realName}"></span></span>
+        <a th:href="@{/logout}" class="btn btn-danger">退出</a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="page-hero hero-blue">
+        <div class="page-hero-content">
+            <h2>📋 报名管理</h2>
+            <p>审核学生的报名申请，管理所有报名记录～</p>
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <form class="filter-group" th:action="@{/registration/list}" method="get">
+            <select name="activityId" onchange="this.form.submit()">
+                <option value="">🎯 全部活动</option>
+                <option th:each="act : ${activityList}" th:value="${act.id}" th:selected="${activityId != null and activityId == act.id}"
+                        th:text="${act.title}"></option>
+            </select>
+        </form>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <table th:if="${registrationList != null and !registrationList.isEmpty()}">
+        <tr>
+            <th>ID</th>
+            <th>报名用户</th>
+            <th>活动名称</th>
+            <th>报名时间</th>
+            <th>状态</th>
+            <th>备注</th>
+            <th>操作</th>
+        </tr>
+        <tr th:each="reg : ${registrationList}">
+            <td th:text="${reg.id}"></td>
+            <td>
+                <div style="font-weight:600;color:#1d1d1f;" th:text="${reg.realName}"></div>
+                <div style="font-size:12px;color:#86868b;" th:text="'@' + ${reg.username}"></div>
+            </td>
+            <td style="font-weight:600;" th:text="${reg.activityTitle}"></td>
+            <td th:text="${reg.registerTime != null} ? ${#dates.format(reg.registerTime, 'yyyy-MM-dd HH:mm')} : '-'"></td>
+            <td>
+                <span class="status-tag status-registered" th:if="${reg.status == 'registered'}">⏳ 待审核</span>
+                <span class="status-tag status-approved" th:if="${reg.status == 'approved'}">✅ 已通过</span>
+                <span class="status-tag status-rejected" th:if="${reg.status == 'rejected'}">❌ 已拒绝</span>
+                <span class="status-tag status-cancelled" th:if="${reg.status == 'cancelled'}">🚫 已取消</span>
+            </td>
+            <td th:text="${reg.remark} != null ? ${reg.remark} : '-'"></td>
+            <td>
+                <form th:if="${reg.status == 'registered'}" th:action="@{/registration/approve}" method="post" style="display:inline;margin-right:8px;">
+                    <input type="hidden" name="id" th:value="${reg.id}">
+                    <button type="submit" class="btn btn-success" style="padding:7px 16px;font-size:12px;">✓ 通过</button>
+                </form>
+                <button th:if="${reg.status == 'registered'}" class="btn btn-danger" style="padding:7px 16px;font-size:12px;"
+                        onclick="showRejectModal(/*[[${reg.id}]]*/)">✗ 拒绝</button>
+
+                <form th:if="${reg.status == 'approved' or reg.status == 'rejected'}" th:action="@{/registration/reaudit}" method="post" style="display:inline;">
+                    <input type="hidden" name="id" th:value="${reg.id}">
+                    <button type="submit" class="btn btn-primary" style="padding:7px 16px;font-size:12px;">🔄 重新审核</button>
+                </form>
+            </td>
+        </tr>
+    </table>
+
+    <div th:if="${registrationList == null or registrationList.isEmpty()}" class="empty">
+        <div class="icon">📭</div>
+        <h3>暂无报名记录</h3>
+        <p>当有学生报名活动后，这里会显示报名信息～</p>
+    </div>
+</div>
+
+<div class="modal-mask" id="rejectModal">
+    <div class="modal">
+        <h3>❌ 拒绝报名</h3>
+        <p style="color:#86868b;margin:10px 0 20px;">确认拒绝这条报名申请吗？</p>
+        <form th:action="@{/registration/reject}" method="post">
+            <input type="hidden" name="id" id="rejectId">
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="hideRejectModal()">取消</button>
+                <button type="submit" class="btn btn-danger">确认拒绝</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function showRejectModal(id) { document.getElementById('rejectId').value = id; document.getElementById('rejectModal').classList.add('active'); }
+function hideRejectModal() { document.getElementById('rejectModal').classList.remove('active'); }
+
+document.addEventListener('DOMContentLoaded', function() {
+    var saved = sessionStorage.getItem('regListScrollTop');
+    if (saved !== null) {
+        window.scrollTo(0, parseInt(saved, 10));
+        sessionStorage.removeItem('regListScrollTop');
+    }
+
+    document.querySelectorAll('form').forEach(function(form) {
+        form.addEventListener('submit', function() {
+            sessionStorage.setItem('regListScrollTop', window.scrollY);
+        });
+    });
+});
+</script>
+</body>
+</html>

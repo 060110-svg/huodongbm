@@ -1,0 +1,108 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>活动详情 - 校园活动报名系统</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="header">
+    <button class="back-btn" th:data-home="${user != null and user.role == 'student' ? '/home' : '/index'}" onclick="goBack(this)" title="返回">‹</button>
+    <h1>🎓 <span class="grad-text">校园活动报名系统</span></h1>
+    <div class="user-info">
+        <span class="user-chip student" th:if="${user != null and user.role == 'student'}">✨ <span th:text="${user.realName}"></span></span>
+        <span class="user-chip admin" th:if="${user != null and user.role == 'admin'}">👨‍💼 <span th:text="${user.realName}"></span></span>
+        <a th:href="@{/logout}" class="btn btn-danger">退出</a>
+    </div>
+</div>
+
+<div class="container-narrow">
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <div th:if="${activity != null}" class="detail-card">
+        <div th:unless="${activity.coverImage != null and !activity.coverImage.isEmpty()}" class="cover"><span th:text="${#strings.substring(activity.title, 0, 1)}"></span></div>
+        <img th:if="${activity.coverImage != null and !activity.coverImage.isEmpty()}" th:src="${activity.coverImage}" class="cover-img">
+        <div class="detail-body">
+            <div class="title-row">
+                <h1 class="detail-title" th:text="${activity.title}"></h1>
+                <span class="status-badge badge-published" th:if="${activity.status == 'published'}">🔥 已发布 · 可报名</span>
+                <span class="status-badge badge-ongoing" th:if="${activity.status == 'ongoing'}">🚀 进行中</span>
+                <span class="status-badge badge-ended" th:if="${activity.status == 'ended'}">✅ 已结束</span>
+                <span class="status-badge badge-offline" th:if="${activity.status == 'offline'}">🚫 已下线</span>
+            </div>
+
+            <div class="meta-grid">
+                <div class="meta-item">
+                    <div class="meta-icon">📍</div>
+                    <div>
+                        <div class="meta-label">活动地点</div>
+                        <div class="meta-value" th:text="${activity.location} != null ? ${activity.location} : '待定'"></div>
+                    </div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-icon">👥</div>
+                    <div>
+                        <div class="meta-label">报名限制</div>
+                        <div class="meta-value">
+                            <span th:if="${activity.maxParticipants != null and activity.maxParticipants > 0}" th:text="'限 ' + ${activity.maxParticipants} + ' 人'"></span>
+                            <span th:if="${activity.maxParticipants == null or activity.maxParticipants == 0}">不限人数</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-icon">🕒</div>
+                    <div>
+                        <div class="meta-label">开始时间</div>
+                        <div class="meta-value" th:text="${activity.startTime != null} ? ${#dates.format(activity.startTime, 'yyyy-MM-dd HH:mm')} : '-'"></div>
+                    </div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-icon">🏁</div>
+                    <div>
+                        <div class="meta-label">结束时间</div>
+                        <div class="meta-value" th:text="${activity.endTime != null} ? ${#dates.format(activity.endTime, 'yyyy-MM-dd HH:mm')} : '-'"></div>
+                    </div>
+                </div>
+                <div class="meta-item" th:if="${activity.deadline != null}">
+                    <div class="meta-icon">⏰</div>
+                    <div>
+                        <div class="meta-label">报名截止</div>
+                        <div class="meta-value" th:text="${#dates.format(activity.deadline, 'yyyy-MM-dd HH:mm')}"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="desc-section" th:if="${activity.description != null}">
+                <h3>📖 活动详情</h3>
+                <div class="desc-content" th:text="${activity.description}"></div>
+            </div>
+
+            <div class="action-bar">
+                <div class="registration-count">
+                    已有 <strong th:text="${activity.registeredCount != null} ? ${activity.registeredCount} : 0">0</strong> 人报名参加
+                </div>
+                <div>
+                    <form th:action="@{/registration/join}" method="post" th:if="${user != null and user.role == 'student' and activity.status == 'published'}">
+                        <input type="hidden" name="activityId" th:value="${activity.id}">
+                        <button type="submit" class="btn btn-primary"
+                                th:disabled="${activity.maxParticipants != null and activity.maxParticipants > 0 and (activity.registeredCount != null and activity.registeredCount >= activity.maxParticipants)}">
+                            🚀 立即报名参加
+                        </button>
+                    </form>
+                    <span th:if="${activity.status == 'offline'}" style="color:#86868b;font-size:14px;padding:14px 24px;background:#f5f5f5;border-radius:12px;">该活动已下线</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${activity == null}" class="not-found">
+        <div class="big-icon">😿</div>
+        <h2>活动不存在或已被删除</h2>
+        <p style="margin-top:12px;">请返回活动列表查看其他精彩活动</p>
+    </div>
+</div>
+<script src="/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>活动广场 - 校园活动报名系统</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="header">
+    <a th:if="${user != null and user.role == 'admin'}" th:href="@{/index}" class="back-btn" title="返回首页">‹</a>
+    <a th:if="${user != null and user.role == 'student'}" th:href="@{/home}" class="back-btn" title="返回主页">‹</a>
+    <h1>🎓 <span class="grad-text">校园活动报名系统</span></h1>
+    <div class="user-info">
+        <span class="user-chip student" th:if="${user != null and user.role == 'student'}">✨ <span th:text="${user.realName}"></span></span>
+        <span class="user-chip admin" th:if="${user != null and user.role == 'admin'}">👨‍💼 <span th:text="${user.realName}"></span></span>
+        <a th:href="@{/logout}" class="btn btn-danger">退出</a>
+    </div>
+</div>
+
+<div class="container">
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <div class="page-hero hero-primary">
+        <div class="page-hero-content">
+            <h2>📅 活动管理</h2>
+            <p>发布、管理、查看校园活动详情，让活动组织更高效！</p>
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <form class="search-box" th:action="@{/activity/list}" method="get">
+            <input type="text" name="title" th:value="${title}" placeholder="搜索感兴趣的活动...">
+            <button type="submit" class="btn btn-primary">搜索</button>
+            <a th:if="${title != null and !title.isEmpty()}" th:href="@{/activity/list}" class="btn btn-secondary">✕ 重置</a>
+        </form>
+        <div>
+            <a th:if="${user != null and user.role == 'admin'}" th:href="@{/activity/toAdd}" class="btn btn-primary">➕ 发布新活动</a>
+        </div>
+    </div>
+
+    <div class="activity-grid" th:if="${activityList != null and !activityList.isEmpty()}">
+        <div class="activity-card" th:each="a,stat : ${activityList}">
+            <img th:if="${a.coverImage != null and !a.coverImage.isEmpty()}" th:src="${a.coverImage}" class="card-cover-img">
+            <div th:unless="${a.coverImage != null and !a.coverImage.isEmpty()}" class="card-cover"
+                 th:classappend="'c' + ${(stat.index % 6) + 1}">
+                <span th:text="${#strings.substring(a.title, 0, 1)}"></span>
+            </div>
+            <div class="card-body">
+                <div class="card-title" th:text="${a.title}"></div>
+                <div class="card-meta">
+                    <span>📍 <span th:text="${a.location}"></span></span>
+                    <span>🕐 <span th:text="${a.startTime != null} ? ${#dates.format(a.startTime, 'yyyy-MM-dd HH:mm')} : '-'"></span></span>
+                    <span th:if="${a.maxParticipants != null and a.maxParticipants > 0}">👥 限 <span th:text="${a.maxParticipants}"></span> 人</span>
+                    <span th:if="${a.maxParticipants == null or a.maxParticipants == 0}">👥 不限人数</span>
+                </div>
+                <div class="card-footer">
+                    <div class="registration-info">
+                        已报名 <strong th:text="${a.registeredCount != null} ? ${a.registeredCount} : 0">0</strong> 人
+                        <span class="status-tag status-published" th:if="${a.status == 'published'}" style="margin-left:8px;">🔥 可报名</span>
+                        <span class="status-tag status-ongoing" th:if="${a.status == 'ongoing'}" style="margin-left:8px;">🚀 进行中</span>
+                        <span class="status-tag status-ended" th:if="${a.status == 'ended'}" style="margin-left:8px;">已结束</span>
+                        <span class="status-tag status-offline" th:if="${a.status == 'offline'}" style="margin-left:8px;">已下线</span>
+                    </div>
+                    <div class="actions">
+                        <a th:href="@{/activity/detail(id=${a.id})}" class="btn-detail">查看详情</a>
+                        <a th:if="${user != null and user.role == 'admin'}" th:href="@{/activity/toEdit(id=${a.id})}" class="btn-edit">编辑</a>
+                        <a th:if="${user != null and user.role == 'admin'}" th:href="@{/activity/delete(id=${a.id})}" class="btn-delete" th:data-delete-id="${a.id}" th:data-delete-title="${a.title}">删除</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${activityList == null or activityList.isEmpty()}" class="empty">
+        <div class="icon">📭</div>
+        <h3>暂时没有找到活动</h3>
+        <p>换个关键词试试，或者等管理员发布新活动吧～</p>
+    </div>
+
+    <div th:if="${totalPages != null and totalPages > 1}" class="pagination">
+        <span th:if="${currentPage == 1}" class="disabled">« 首页</span>
+        <a th:if="${currentPage > 1}" th:href="@{/activity/list(title=${title}, page=1)}">« 首页</a>
+        <span th:if="${currentPage == 1}" class="disabled">‹ 上一页</span>
+        <a th:if="${currentPage > 1}" th:href="@{/activity/list(title=${title}, page=${currentPage - 1})}">‹ 上一页</a>
+        <span th:each="i : ${#numbers.sequence(T(Math).max(1, currentPage - 2), T(Math).min(totalPages, currentPage + 2))}">
+            <span th:if="${i == currentPage}" class="current" th:text="${i}"></span>
+            <a th:unless="${i == currentPage}" th:href="@{/activity/list(title=${title}, page=${i})}" th:text="${i}"></a>
+        </span>
+        <span th:if="${currentPage == totalPages}" class="disabled">下一页 ›</span>
+        <a th:if="${currentPage < totalPages}" th:href="@{/activity/list(title=${title}, page=${currentPage + 1})}">下一页 ›</a>
+        <span th:if="${currentPage == totalPages}" class="disabled">末页 »</span>
+        <a th:if="${currentPage < totalPages}" th:href="@{/activity/list(title=${title}, page=${totalPages})}">末页 »</a>
+        <span class="info">共 <strong th:text="${totalCount}"></strong> 条 · <strong th:text="${totalPages}"></strong> 页</span>
+    </div>
+</div>
+
+<div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-dialog">
+        <div class="confirm-icon danger">🗑️</div>
+        <div class="confirm-title">确认删除</div>
+        <div class="confirm-message" id="confirmMessage">确定删除该活动？此操作无法撤销。</div>
+        <div class="confirm-btns">
+            <button class="confirm-cancel" id="confirmCancel">取消</button>
+            <button class="confirm-ok danger" id="confirmOk">删除</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function(){
+    var overlay = document.getElementById('confirmOverlay');
+    var msg = document.getElementById('confirmMessage');
+    var okBtn = document.getElementById('confirmOk');
+    var cancelBtn = document.getElementById('confirmCancel');
+    var currentHref = '';
+    document.querySelectorAll('[data-delete-id]').forEach(function(btn){
+        btn.addEventListener('click', function(e){
+            e.preventDefault();
+            var title = btn.getAttribute('data-delete-title') || '该活动';
+            msg.innerHTML = '确定删除活动「<strong>' + title + '</strong>」吗？<br>此操作无法撤销，相关报名记录也会被移除。';
+            currentHref = btn.getAttribute('href');
+            overlay.classList.add('show');
+        });
+    });
+    function close(){ overlay.classList.remove('show'); }
+    cancelBtn.addEventListener('click', close);
+    overlay.addEventListener('click', function(e){ if(e.target === overlay) close(); });
+    document.addEventListener('keydown', function(e){ if(e.key === 'Escape') close(); });
+    okBtn.addEventListener('click', function(){
+        if(currentHref) window.location.href = currentHref;
+        close();
+    });
+})();
+</script>
+</body>
+</html>
