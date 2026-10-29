@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.stu</groupId>
     <artifactId>huodongbm</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.1.0</version>
     <name>huodongbm</name>
     <description>校园活动报名系统</description>
     <url/>
