@@ -12,7 +12,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import jakarta.servlet.http.HttpSession;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 public class HomeController {
@@ -61,10 +63,16 @@ public class HomeController {
                         .orderByDesc(Registration::getRegisterTime)
                         .last("LIMIT 5")
         );
-        for (Registration reg : myLatest) {
-            Activity activity = activityService.getById(reg.getActivityId());
-            if (activity != null) {
-                reg.setActivityTitle(activity.getTitle());
+        // 批量取活动标题，避免逐条查询（N+1）
+        if (!myLatest.isEmpty()) {
+            List<Integer> activityIds = myLatest.stream()
+                    .map(Registration::getActivityId).distinct().toList();
+            Map<Integer, String> titleMap = new HashMap<>();
+            for (Activity activity : activityService.listByIds(activityIds)) {
+                titleMap.put(activity.getId(), activity.getTitle());
+            }
+            for (Registration reg : myLatest) {
+                reg.setActivityTitle(titleMap.get(reg.getActivityId()));
             }
         }
         model.addAttribute("myLatest", myLatest);

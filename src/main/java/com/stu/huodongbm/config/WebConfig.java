@@ -16,7 +16,8 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(loginInterceptor)
                 .addPathPatterns("/**")
-                .excludePathPatterns("/login", "/logout", "/changePassword")
+                // /changePassword 为历史遗留死配置已移除；/error 需放行，否则匿名请求出错时会被劫持到登录页
+                .excludePathPatterns("/login", "/logout", "/error")
                 .excludePathPatterns("/css/**", "/js/**", "/images/**", "/uploads/**");
     }
 

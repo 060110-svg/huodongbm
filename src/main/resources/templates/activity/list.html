@@ -14,7 +14,10 @@
     <div class="user-info">
         <span class="user-chip student" th:if="${user != null and user.role == 'student'}">✨ <span th:text="${user.realName}"></span></span>
         <span class="user-chip admin" th:if="${user != null and user.role == 'admin'}">👨‍💼 <span th:text="${user.realName}"></span></span>
-        <a th:href="@{/logout}" class="btn btn-danger">退出</a>
+        <form th:action="@{/logout}" method="post" style="display:inline;margin:0;">
+            <input type="hidden" name="_csrf" th:value="${session.csrfToken}">
+            <button type="submit" class="btn btn-danger">退出</button>
+        </form>
     </div>
 </div>
 
@@ -66,7 +69,11 @@
                     <div class="actions">
                         <a th:href="@{/activity/detail(id=${a.id})}" class="btn-detail">查看详情</a>
                         <a th:if="${user != null and user.role == 'admin'}" th:href="@{/activity/toEdit(id=${a.id})}" class="btn-edit">编辑</a>
-                        <a th:if="${user != null and user.role == 'admin'}" th:href="@{/activity/delete(id=${a.id})}" class="btn-delete" th:data-delete-id="${a.id}" th:data-delete-title="${a.title}">删除</a>
+                        <form th:if="${user != null and user.role == 'admin'}" th:action="@{/activity/delete}" method="post" style="display:inline;margin:0;">
+                            <input type="hidden" name="_csrf" th:value="${session.csrfToken}">
+                            <input type="hidden" name="id" th:value="${a.id}">
+                            <button type="submit" class="btn-delete" th:data-delete-id="${a.id}" th:data-delete-title="${a.title}">删除</button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -84,7 +91,7 @@
         <a th:if="${currentPage > 1}" th:href="@{/activity/list(title=${title}, page=1)}">« 首页</a>
         <span th:if="${currentPage == 1}" class="disabled">‹ 上一页</span>
         <a th:if="${currentPage > 1}" th:href="@{/activity/list(title=${title}, page=${currentPage - 1})}">‹ 上一页</a>
-        <span th:each="i : ${#numbers.sequence(T(Math).max(1, currentPage - 2), T(Math).min(totalPages, currentPage + 2))}">
+        <span th:each="i : ${#numbers.sequence(pageStart, pageEnd)}">
             <span th:if="${i == currentPage}" class="current" th:text="${i}"></span>
             <a th:unless="${i == currentPage}" th:href="@{/activity/list(title=${title}, page=${i})}" th:text="${i}"></a>
         </span>
@@ -114,13 +121,17 @@
     var msg = document.getElementById('confirmMessage');
     var okBtn = document.getElementById('confirmOk');
     var cancelBtn = document.getElementById('confirmCancel');
-    var currentHref = '';
+    var currentForm = null;
     document.querySelectorAll('[data-delete-id]').forEach(function(btn){
         btn.addEventListener('click', function(e){
             e.preventDefault();
             var title = btn.getAttribute('data-delete-title') || '该活动';
-            msg.innerHTML = '确定删除活动「<strong>' + title + '</strong>」吗？<br>此操作无法撤销，相关报名记录也会被移除。';
-            currentHref = btn.getAttribute('href');
+            // 用 textContent 构造消息，活动标题不会被按 HTML 解析（防 XSS）
+            msg.textContent = '';
+            var strongEl = document.createElement('strong');
+            strongEl.textContent = title;
+            msg.append('确定删除活动「', strongEl, '」吗？', document.createElement('br'), '此操作无法撤销，相关报名记录也会被移除。');
+            currentForm = btn.form;
             overlay.classList.add('show');
         });
     });
@@ -129,7 +140,7 @@
     overlay.addEventListener('click', function(e){ if(e.target === overlay) close(); });
     document.addEventListener('keydown', function(e){ if(e.key === 'Escape') close(); });
     okBtn.addEventListener('click', function(){
-        if(currentHref) window.location.href = currentHref;
+        if(currentForm) currentForm.submit();
         close();
     });
 })();

@@ -206,9 +206,10 @@ a { text-decoration: none; color: inherit; }
 .registration-info { font-size: 13px; color: var(--text-light); }
 .registration-info strong { color: #667eea; font-size: 18px; }
 .actions { display: flex; gap: 8px; }
-.actions a {
+.actions a, .actions button {
     font-size: 13px; padding: 8px 18px; border-radius: 12px;
     text-decoration: none; cursor: pointer; font-weight: 600; transition: all 0.25s ease;
+    font-family: inherit; border: none;
 }
 .btn-detail { background: var(--primary-gradient); color: #fff; }
 .btn-detail:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(102,126,234,0.4); }
@@ -216,6 +217,14 @@ a { text-decoration: none; color: inherit; }
 .btn-edit:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(240,147,251,0.4); }
 .btn-delete { background: #ff6b6b; color: #fff; border: none; }
 .btn-delete:hover { background: #ff5252; transform: translateY(-1px); }
+
+/* 取消报名（POST 化后由链接改为按钮，保持行内视觉） */
+.cancel-reg-btn {
+    background: none; border: none; padding: 0; margin: 0;
+    font-size: 14px; font-family: inherit; font-weight: 600;
+    color: #ff6b6b; cursor: pointer;
+}
+.cancel-reg-btn:hover { color: #ff5252; text-decoration: underline; }
 
 table {
     width: 100%; border-collapse: separate; border-spacing: 0;

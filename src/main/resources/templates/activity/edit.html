@@ -12,11 +12,17 @@
     <h1>🎓 <span class="grad-text">校园活动报名系统</span></h1>
     <div class="user-info">
         <span class="user-chip admin">👨‍💼 <span th:text="'管理员：' + ${user.realName}"></span></span>
-        <a th:href="@{/logout}" class="btn btn-danger">退出</a>
+        <form th:action="@{/logout}" method="post" style="display:inline;margin:0;">
+            <input type="hidden" name="_csrf" th:value="${session.csrfToken}">
+            <button type="submit" class="btn btn-danger">退出</button>
+        </form>
     </div>
 </div>
 
 <div class="container-narrow">
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
     <div class="page-hero hero-primary">
         <div class="page-hero-content">
             <h2>✏️ 编辑活动</h2>
@@ -26,11 +32,12 @@
 
     <div class="form-card">
         <form th:action="@{/activity/update}" method="post" th:object="${activity}" enctype="multipart/form-data">
+            <input type="hidden" name="_csrf" th:value="${session.csrfToken}">
             <input type="hidden" name="id" th:value="*{id}">
 
             <div class="form-item">
                 <label>活动标题<span class="required">*</span></label>
-                <input type="text" name="title" th:value="*{title}" required placeholder="请输入活动名称">
+                <input type="text" name="title" th:value="*{title}" required maxlength="100" placeholder="请输入活动名称">
             </div>
 
             <div class="form-item">
@@ -40,17 +47,17 @@
 
             <div class="form-item">
                 <label>活动地点</label>
-                <input type="text" name="location" th:value="*{location}" placeholder="如：教学楼A301">
+                <input type="text" name="location" th:value="*{location}" maxlength="100" placeholder="如：教学楼A301">
             </div>
 
             <div class="form-row">
                 <div class="form-item">
-                    <label>开始时间</label>
-                    <input type="datetime-local" name="startTime" th:value="${activity.startTime != null} ? ${#dates.format(activity.startTime, 'yyyy-MM-dd''T''HH:mm')} : ''">
+                    <label>开始时间<span class="required">*</span></label>
+                    <input type="datetime-local" name="startTime" required th:value="${activity.startTime != null} ? ${#dates.format(activity.startTime, 'yyyy-MM-dd''T''HH:mm')} : ''">
                 </div>
                 <div class="form-item">
-                    <label>结束时间</label>
-                    <input type="datetime-local" name="endTime" th:value="${activity.endTime != null} ? ${#dates.format(activity.endTime, 'yyyy-MM-dd''T''HH:mm')} : ''">
+                    <label>结束时间<span class="required">*</span></label>
+                    <input type="datetime-local" name="endTime" required th:value="${activity.endTime != null} ? ${#dates.format(activity.endTime, 'yyyy-MM-dd''T''HH:mm')} : ''">
                 </div>
             </div>
 
