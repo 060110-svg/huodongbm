@@ -151,6 +151,7 @@
     <div th:if="${error}" class="error-msg">⚠️ <span th:text="${error}"></span></div>
 
     <form th:action="@{/login}" method="post">
+        <input type="hidden" name="_csrf" th:value="${session.csrfToken}">
         <div class="form-item">
             <label>👤 用户名</label>
             <input type="text" name="username" placeholder="请输入用户名" required autocomplete="username">

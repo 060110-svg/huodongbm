@@ -12,7 +12,10 @@
     <h1>🎓 <span class="grad-text">校园活动报名系统</span></h1>
     <div class="user-info">
         <span class="user-chip admin">👨‍💼 <span th:text="'管理员：' + ${user.realName}"></span></span>
-        <a th:href="@{/logout}" class="btn btn-danger">退出</a>
+        <form th:action="@{/logout}" method="post" style="display:inline;margin:0;">
+            <input type="hidden" name="_csrf" th:value="${session.csrfToken}">
+            <button type="submit" class="btn btn-danger">退出</button>
+        </form>
     </div>
 </div>
 
@@ -64,6 +67,7 @@
             <td th:text="${reg.remark} != null ? ${reg.remark} : '-'"></td>
             <td>
                 <form th:if="${reg.status == 'registered'}" th:action="@{/registration/approve}" method="post" style="display:inline;margin-right:8px;">
+                    <input type="hidden" name="_csrf" th:value="${session.csrfToken}">
                     <input type="hidden" name="id" th:value="${reg.id}">
                     <button type="submit" class="btn btn-success" style="padding:7px 16px;font-size:12px;">✓ 通过</button>
                 </form>
@@ -71,6 +75,7 @@
                         onclick="showRejectModal(/*[[${reg.id}]]*/)">✗ 拒绝</button>
 
                 <form th:if="${reg.status == 'approved' or reg.status == 'rejected'}" th:action="@{/registration/reaudit}" method="post" style="display:inline;">
+                    <input type="hidden" name="_csrf" th:value="${session.csrfToken}">
                     <input type="hidden" name="id" th:value="${reg.id}">
                     <button type="submit" class="btn btn-primary" style="padding:7px 16px;font-size:12px;">🔄 重新审核</button>
                 </form>
@@ -90,7 +95,10 @@
         <h3>❌ 拒绝报名</h3>
         <p style="color:#86868b;margin:10px 0 20px;">确认拒绝这条报名申请吗？</p>
         <form th:action="@{/registration/reject}" method="post">
+            <input type="hidden" name="_csrf" th:value="${session.csrfToken}">
             <input type="hidden" name="id" id="rejectId">
+            <label for="rejectRemark">拒绝原因（选填，将展示在学生的报名记录中）</label>
+            <textarea id="rejectRemark" name="remark" rows="3" maxlength="255" placeholder="请输入拒绝原因（不超过255字）"></textarea>
             <div class="modal-actions">
                 <button type="button" class="btn btn-secondary" onclick="hideRejectModal()">取消</button>
                 <button type="submit" class="btn btn-danger">确认拒绝</button>
@@ -100,7 +108,7 @@
 </div>
 
 <script>
-function showRejectModal(id) { document.getElementById('rejectId').value = id; document.getElementById('rejectModal').classList.add('active'); }
+function showRejectModal(id) { document.getElementById('rejectId').value = id; document.getElementById('rejectRemark').value = ''; document.getElementById('rejectModal').classList.add('active'); }
 function hideRejectModal() { document.getElementById('rejectModal').classList.remove('active'); }
 
 document.addEventListener('DOMContentLoaded', function() {

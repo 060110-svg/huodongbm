@@ -13,7 +13,10 @@
     <h1>🎓 <span class="grad-text">校园活动报名系统</span></h1>
     <div class="user-info">
         <span class="user-chip student">✨ <span th:text="${user.realName}"></span></span>
-        <a th:href="@{/logout}" class="btn btn-danger">退出</a>
+        <form th:action="@{/logout}" method="post" style="display:inline;margin:0;">
+            <input type="hidden" name="_csrf" th:value="${session.csrfToken}">
+            <button type="submit" class="btn btn-danger">退出</button>
+        </form>
     </div>
 </div>
 
@@ -48,7 +51,11 @@
             <td th:text="${reg.remark} != null ? ${reg.remark} : '-'"></td>
             <td>
                 <a th:href="@{/activity/detail(id=${reg.activityId})}" style="color:#667eea;text-decoration:none;margin-right:14px;font-weight:600;">查看活动</a>
-                <a th:if="${reg.status == 'registered' or reg.status == 'approved'}" th:href="@{/registration/cancel(id=${reg.id})}" class="cancel-reg-btn" th:data-act-title="${reg.activityTitle}">取消报名</a>
+                <form th:if="${reg.status == 'registered' or reg.status == 'approved'}" th:action="@{/registration/cancel}" method="post" style="display:inline;margin:0;">
+                    <input type="hidden" name="_csrf" th:value="${session.csrfToken}">
+                    <input type="hidden" name="id" th:value="${reg.id}">
+                    <button type="submit" class="cancel-reg-btn" th:data-act-title="${reg.activityTitle}">取消报名</button>
+                </form>
             </td>
         </tr>
     </table>
@@ -79,13 +86,17 @@
     var msg = document.getElementById('confirmMessage');
     var okBtn = document.getElementById('confirmOk');
     var cancelBtn = document.getElementById('confirmCancel');
-    var currentHref = '';
+    var currentForm = null;
     document.querySelectorAll('.cancel-reg-btn').forEach(function(btn){
         btn.addEventListener('click', function(e){
             e.preventDefault();
             var title = btn.getAttribute('data-act-title') || '该活动';
-            msg.innerHTML = '确定取消「<strong>' + title + '</strong>」的报名吗？<br>取消后需要重新报名才能参加。';
-            currentHref = btn.getAttribute('href');
+            // 用 textContent 构造消息，活动标题不会被按 HTML 解析（防 XSS）
+            msg.textContent = '';
+            var strongEl = document.createElement('strong');
+            strongEl.textContent = title;
+            msg.append('确定取消「', strongEl, '」的报名吗？', document.createElement('br'), '取消后需要重新报名才能参加。');
+            currentForm = btn.form;
             overlay.classList.add('show');
         });
     });
@@ -94,7 +105,7 @@
     overlay.addEventListener('click', function(e){ if(e.target === overlay) close(); });
     document.addEventListener('keydown', function(e){ if(e.key === 'Escape') close(); });
     okBtn.addEventListener('click', function(){
-        if(currentHref) window.location.href = currentHref;
+        if(currentForm) currentForm.submit();
         close();
     });
 })();

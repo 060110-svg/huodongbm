@@ -10,6 +10,9 @@ out/
 *.ipr
 *.iws
 
+# IDE 本地配置（VS Code）
+.vscode/
+
 # 运行时数据
 uploads/
 *.log

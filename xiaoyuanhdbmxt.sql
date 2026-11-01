@@ -14,7 +14,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 CREATE TABLE `user` (
   `id` INT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
   `username` VARCHAR(50) NOT NULL COMMENT '用户名',
-  `password` VARCHAR(50) NOT NULL COMMENT '密码',
+  `password` VARCHAR(100) NOT NULL COMMENT '密码(BCrypt哈希,兼容存量明文)',
   `real_name` VARCHAR(50) NOT NULL COMMENT '真实姓名',
   `role` VARCHAR(20) NOT NULL DEFAULT 'student' COMMENT '角色: admin=管理员, student=学生',
   `phone` VARCHAR(20) DEFAULT NULL COMMENT '手机号',
@@ -24,60 +24,7 @@ CREATE TABLE `user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
 
 -- -----------------------------------------------------
--- 2. clazz 班级表
--- -----------------------------------------------------
-CREATE TABLE `clazz` (
-  `id` INT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-  `clazz_no` VARCHAR(50) NOT NULL COMMENT '班级编号',
-  `clazz_name` VARCHAR(50) NOT NULL COMMENT '班级名称',
-  `grade` VARCHAR(50) DEFAULT NULL COMMENT '年级',
-  `major` VARCHAR(100) DEFAULT NULL COMMENT '专业',
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='班级表';
-
--- -----------------------------------------------------
--- 3. student 学生表
--- -----------------------------------------------------
-CREATE TABLE `student` (
-  `id` INT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-  `stu_name` VARCHAR(50) NOT NULL COMMENT '学生姓名',
-  `stu_no` VARCHAR(50) NOT NULL COMMENT '学号',
-  `age` INT DEFAULT NULL COMMENT '年龄',
-  `gender` VARCHAR(10) DEFAULT NULL COMMENT '性别',
-  `clazz_id` INT DEFAULT NULL COMMENT '所属班级ID',
-  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  PRIMARY KEY (`id`),
-  KEY `idx_clazz_id` (`clazz_id`),
-  CONSTRAINT `fk_student_clazz` FOREIGN KEY (`clazz_id`) REFERENCES `clazz` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='学生表';
-
--- -----------------------------------------------------
--- 4. score 成绩表
--- -----------------------------------------------------
-CREATE TABLE `score` (
-  `id` INT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-  `student_id` INT NOT NULL COMMENT '学生ID',
-  `subject` VARCHAR(50) NOT NULL COMMENT '科目',
-  `score` DOUBLE NOT NULL COMMENT '成绩分数',
-  `exam_date` DATE DEFAULT NULL COMMENT '考试日期',
-  PRIMARY KEY (`id`),
-  KEY `idx_student_id` (`student_id`),
-  CONSTRAINT `fk_score_student` FOREIGN KEY (`student_id`) REFERENCES `student` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='成绩表';
-
--- -----------------------------------------------------
--- 5. dept 部门表
--- -----------------------------------------------------
-CREATE TABLE `dept` (
-  `id` INT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-  `dept_name` VARCHAR(50) NOT NULL COMMENT '部门名称',
-  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='部门表';
-
--- -----------------------------------------------------
--- 6. activity 活动表
+-- 2. activity 活动表
 -- -----------------------------------------------------
 CREATE TABLE `activity` (
   `id` INT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
@@ -96,7 +43,7 @@ CREATE TABLE `activity` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='活动表';
 
 -- -----------------------------------------------------
--- 7. registration 报名表
+-- 3. registration 报名表
 -- -----------------------------------------------------
 CREATE TABLE `registration` (
   `id` INT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
@@ -117,13 +64,6 @@ CREATE TABLE `registration` (
 -- 初始化数据
 -- =====================================================
 
--- 班级数据
-INSERT INTO `clazz` (`clazz_no`, `clazz_name`, `grade`, `major`) VALUES
-('CS202301', '计算机科学2301班', '2023级', '计算机科学与技术'),
-('CS202302', '计算机科学2302班', '2023级', '计算机科学与技术'),
-('SE202301', '软件工程2301班', '2023级', '软件工程'),
-('AI202301', '人工智能2301班', '2023级', '人工智能');
-
 -- 用户数据 (密码统一: 123456)
 INSERT INTO `user` (`username`, `password`, `real_name`, `role`, `phone`) VALUES
 ('admin',     '123456', '系统管理员', 'admin',   '13800000000'),
@@ -136,29 +76,6 @@ INSERT INTO `user` (`username`, `password`, `real_name`, `role`, `phone`) VALUES
 ('student06', '123456', '孙八',       'student', '13800000006'),
 ('student07', '123456', '周九',       'student', '13800000007'),
 ('student08', '123456', '吴十',       'student', '13800000008');
-
--- 学生数据
-INSERT INTO `student` (`stu_name`, `stu_no`, `age`, `gender`, `clazz_id`) VALUES
-('张三', '2023001', 20, '男', 1),
-('李四', '2023002', 20, '男', 2),
-('王五', '2023003', 21, '男', 1),
-('赵六', '2023004', 20, '女', 3),
-('钱七', '2023005', 21, '女', 4);
-
--- 成绩数据
-INSERT INTO `score` (`student_id`, `subject`, `score`, `exam_date`) VALUES
-(1, '高等数学',   88.5, '2025-07-10'),
-(1, '大学英语',   92.0, '2025-07-12'),
-(2, '高等数学',   76.0, '2025-07-10'),
-(2, '大学英语',   85.5, '2025-07-12'),
-(3, '高等数学',   95.0, '2025-07-10'),
-(4, '高等数学',   82.0, '2025-07-10');
-
--- 部门数据
-INSERT INTO `dept` (`dept_name`) VALUES
-('计算机学院'),
-('软件学院'),
-('人工智能学院');
 
 -- 活动数据 (当前日期基准: 2026-10-08)
 INSERT INTO `activity` (`title`, `description`, `location`, `start_time`, `end_time`, `deadline`, `max_participants`, `current_participants`, `status`) VALUES

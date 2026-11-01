@@ -13,7 +13,10 @@
     <div class="user-info">
         <span class="user-chip student" th:if="${user != null and user.role == 'student'}">✨ <span th:text="${user.realName}"></span></span>
         <span class="user-chip admin" th:if="${user != null and user.role == 'admin'}">👨‍💼 <span th:text="${user.realName}"></span></span>
-        <a th:href="@{/logout}" class="btn btn-danger">退出</a>
+        <form th:action="@{/logout}" method="post" style="display:inline;margin:0;">
+            <input type="hidden" name="_csrf" th:value="${session.csrfToken}">
+            <button type="submit" class="btn btn-danger">退出</button>
+        </form>
     </div>
 </div>
 
@@ -85,6 +88,7 @@
                 </div>
                 <div>
                     <form th:action="@{/registration/join}" method="post" th:if="${user != null and user.role == 'student' and activity.status == 'published'}">
+                        <input type="hidden" name="_csrf" th:value="${session.csrfToken}">
                         <input type="hidden" name="activityId" th:value="${activity.id}">
                         <button type="submit" class="btn btn-primary"
                                 th:disabled="${activity.maxParticipants != null and activity.maxParticipants > 0 and (activity.registeredCount != null and activity.registeredCount >= activity.maxParticipants)}">
