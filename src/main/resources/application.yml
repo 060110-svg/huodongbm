@@ -6,8 +6,6 @@ spring:
     url: jdbc:mysql://${DB_HOST:127.0.0.1}:${DB_PORT:3306}/${DB_NAME:xiaoyuanhdbmxt}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:1234}
-  thymeleaf:
-    cache: false
   servlet:
     multipart:
       enabled: true
@@ -15,7 +13,12 @@ spring:
       max-request-size: 10MB
 
 mybatis-plus:
-  mapper-locations: classpath:mapper/*.xml
   type-aliases-package: com.stu.huodongbm.entity
   configuration:
     map-underscore-to-camel-case: true
+  global-config:
+    banner: false
+
+jwt:
+  secret: ${JWT_SECRET:YourSuperSecretKeyForJWTTokenGeneration2024MustBeAtLeast32Characters}
+  expiration: 86400000

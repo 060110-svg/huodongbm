@@ -1,23 +1,25 @@
-package com.stu.huodongbm.controller;
+package com.stu.huodongbm.controller.api;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.stu.huodongbm.common.LoginUser;
+import com.stu.huodongbm.common.Result;
+import com.stu.huodongbm.common.UserContext;
 import com.stu.huodongbm.entity.Activity;
 import com.stu.huodongbm.entity.Registration;
-import com.stu.huodongbm.entity.User;
 import com.stu.huodongbm.service.ActivityService;
 import com.stu.huodongbm.service.RegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.servlet.http.HttpSession;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Controller
-public class HomeController {
+@RestController
+@RequestMapping("/api")
+public class ApiHomeController {
 
     @Autowired
     private ActivityService activityService;
@@ -26,12 +28,11 @@ public class HomeController {
     private RegistrationService registrationService;
 
     @GetMapping("/home")
-    public String home(HttpSession session, Model model) {
-        User user = (User) session.getAttribute("user");
+    public Result<Map<String, Object>> home() {
+        LoginUser user = UserContext.get();
         if (user == null) {
-            return "redirect:/login";
+            return Result.fail(401, "未登录");
         }
-        model.addAttribute("user", user);
 
         long totalActivities = activityService.count();
         long ongoingActivities = activityService.count(new LambdaQueryWrapper<Activity>()
@@ -42,11 +43,6 @@ public class HomeController {
                 .eq(Registration::getUserId, user.getId())
                 .eq(Registration::getStatus, "approved"));
 
-        model.addAttribute("totalActivities", totalActivities);
-        model.addAttribute("ongoingActivities", ongoingActivities);
-        model.addAttribute("myTotal", myTotal);
-        model.addAttribute("myApproved", myApproved);
-
         List<Activity> hotActivities = activityService.list(
                 new LambdaQueryWrapper<Activity>()
                         .in(Activity::getStatus, "published", "ongoing")
@@ -55,7 +51,6 @@ public class HomeController {
                         .last("LIMIT 5")
         );
         activityService.fillRegisteredCount(hotActivities);
-        model.addAttribute("hotActivities", hotActivities);
 
         List<Registration> myLatest = registrationService.list(
                 new LambdaQueryWrapper<Registration>()
@@ -63,7 +58,6 @@ public class HomeController {
                         .orderByDesc(Registration::getRegisterTime)
                         .last("LIMIT 5")
         );
-        // 批量取活动标题，避免逐条查询（N+1）
         if (!myLatest.isEmpty()) {
             List<Integer> activityIds = myLatest.stream()
                     .map(Registration::getActivityId).distinct().toList();
@@ -75,8 +69,15 @@ public class HomeController {
                 reg.setActivityTitle(titleMap.get(reg.getActivityId()));
             }
         }
-        model.addAttribute("myLatest", myLatest);
 
-        return "home";
+        Map<String, Object> data = new HashMap<>();
+        data.put("user", user);
+        data.put("totalActivities", totalActivities);
+        data.put("ongoingActivities", ongoingActivities);
+        data.put("myTotal", myTotal);
+        data.put("myApproved", myApproved);
+        data.put("hotActivities", hotActivities);
+        data.put("myLatest", myLatest);
+        return Result.ok(data);
     }
 }

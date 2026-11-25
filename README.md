@@ -1,6 +1,6 @@
 # 校园活动报名系统 (huodongbm)
 
-一个基于 **Spring Boot 4 + Thymeleaf + MyBatis-Plus + MySQL** 的校园活动报名管理系统。支持活动发布与管理、学生在线报名、管理员审核，以及活动状态的自动流转。
+一个基于 **Spring Boot 3 + MyBatis-Plus + MySQL** 的校园活动报名管理系统后端，以 REST API（`/api/**`，JWT 认证）形式对外提供服务。支持活动发布与管理、学生在线报名、管理员审核，以及活动状态的自动流转。前端为独立的 **Vue 3 前后端分离项目**（见 `huodongbm-web/`）。
 
 ## 功能特性
 
@@ -17,13 +17,14 @@
 
 | 分类 | 技术 |
 | --- | --- |
-| 后端框架 | Spring Boot 4.0.6 |
-| JDK | Java 25 |
+| 后端框架 | Spring Boot 3.3.6 |
+| JDK | Java 17 |
 | ORM | MyBatis-Plus 3.5.16 |
-| 模板引擎 | Thymeleaf |
 | 数据库 | MySQL 8.x |
 | 构建工具 | Maven |
-| 其他 | Lombok、Spring Actuator |
+| 认证 | JWT（jjwt 0.12.6，无状态） |
+| 其他 | Lombok、BCrypt（spring-security-crypto）、Spring Actuator |
+| 前端（huodongbm-web） | Vue 3.5、Vite 8、Vue Router 4、Pinia、Axios |
 
 ## 项目结构
 
@@ -33,27 +34,30 @@ huodongbm/
 ├── xiaoyuanhdbmxt.sql                   # 数据库建表 + 初始化数据脚本
 ├── src/main/java/com/stu/huodongbm/
 │   ├── HuodongbmApplication.java        # 启动类
-│   ├── config/                          # 配置类（MyBatis-Plus、Web、全局模型）
-│   ├── controller/                      # 控制器（登录、首页、活动、报名）
+│   ├── common/                          # 统一响应 Result、登录上下文、@RequireAdmin
+│   ├── config/                          # 配置类（MyBatis-Plus、Web/CORS、Jackson）
+│   ├── controller/api/                  # REST 控制器（登录、首页、活动、报名）
 │   ├── entity/                          # 实体类（User、Activity、Registration）
-│   ├── interceptor/                     # 登录拦截器
+│   ├── interceptor/                     # JWT 认证拦截器
 │   ├── mapper/                          # MyBatis-Plus Mapper
 │   ├── service/                         # 业务层
 │   └── task/                            # 定时任务（活动状态流转）
 ├── src/main/resources/
-│   ├── application.yml                  # 应用配置
-│   ├── static/                          # 静态资源（CSS、JS）
-│   └── templates/                       # Thymeleaf 模板
-└── src/test/java                         # 测试
+│   └── application.yml                  # 应用配置
+└── src/test/java                         # 集成测试
 ```
+
+> 后端仅提供 `/api/**` 接口与 `/uploads/**` 封面图静态资源，不托管任何页面；
+> 所有 UI 由 `huodongbm-web`（Vue 3）提供，开发期经 Vite 代理访问 8080。
 
 ## 快速开始
 
 ### 环境要求
 
-- JDK 25+
+- JDK 17+
 - Maven 3.9+
 - MySQL 8.x
+- Node.js 18+（仅前端 huodongbm-web 需要）
 
 ### 1. 初始化数据库
 
@@ -79,11 +83,23 @@ mysql -u root -p < xiaoyuanhdbmxt.sql
 
 ### 3. 启动项目
 
+后端（纯 API 服务，不含页面）：
+
 ```bash
 mvn spring-boot:run
 ```
 
-启动成功后访问：<http://localhost:8080/login>
+启动后 8080 端口仅提供 `/api/**` 接口（可直接访问 <http://localhost:8080/api/activities> 验证）。
+
+前端（唯一的项目入口，另开终端）：
+
+```bash
+cd ../huodongbm-web
+npm install
+npm run dev
+```
+
+启动成功后访问：<http://localhost:5173>（开发服务器已配置 `/api` 与 `/uploads` 代理到 8080）。
 
 ### 默认账号
 
@@ -92,11 +108,11 @@ mvn spring-boot:run
 | 管理员 | `admin` | `123456` |
 | 学生 | `student01` | `123456` |
 
-> 密码为明文存储，仅供学习演示使用，生产环境请使用加密方案（如 BCrypt）。
+> 初始化脚本中的密码为明文，仅供学习演示；用户登录成功后系统会自动将其惰性升级为 BCrypt 哈希。
 
 ## 数据模型
 
-核心表：`user`（用户）、`activity`（活动）、`registration`（报名），另含 `clazz`（班级）、`student`（学生）、`score`（成绩）、`dept`（部门）等扩展表。详见 `xiaoyuanhdbmxt.sql`。
+核心表：`user`（用户）、`activity`（活动）、`registration`（报名，外键级联删除）。建表与初始化数据详见 `xiaoyuanhdbmxt.sql`。
 
 活动状态：`published`(已发布) → `ongoing`(进行中) → `ended`(已结束)，`offline`(已下线)。
 
