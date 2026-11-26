@@ -309,6 +309,57 @@ class HuodongbmIntegrationTests {
                 .eq(Activity::getTitle, "IT合法活动")));
     }
 
+    // ================= 分类筛选 =================
+
+    @Test
+    void 活动列表按状态筛选() throws Exception {
+        String stu = bearer(newUser("student"));
+        Activity pub = newActivity("IT筛选-发布", 0);
+        Activity ended = newActivity("IT筛选-结束", 0);
+        ended.setStatus("ended");
+        activityService.updateById(ended);
+
+        MvcResult r = mockMvc.perform(get("/api/activities").param("status", "ended")
+                .header("Authorization", stu)).andReturn();
+        JsonNode list = json(r).get("data").get("list");
+        boolean hasEnded = false, hasPublished = false;
+        for (JsonNode a : list) {
+            if (a.get("id").asInt() == ended.getId()) hasEnded = true;
+            if (a.get("id").asInt() == pub.getId()) hasPublished = true;
+        }
+        assertTrue(hasEnded, "筛选 ended 应包含已结束活动");
+        assertTrue(!hasPublished, "筛选 ended 不应包含已发布活动");
+    }
+
+    @Test
+    void 我的报名按状态筛选() throws Exception {
+        User u = newUser("student");
+        Activity a = newActivity("IT筛选-我的报名", 0);
+        newRegistration(u, a, "registered");
+        newRegistration(u, a, "cancelled");
+
+        MvcResult r = mockMvc.perform(get("/api/registrations/my").param("status", "cancelled")
+                .header("Authorization", bearer(u))).andReturn();
+        JsonNode list = json(r).get("data");
+        assertEquals(1, list.size());
+        assertEquals("cancelled", list.get(0).get("status").asText());
+    }
+
+    @Test
+    void 管理端报名名单按状态筛选() throws Exception {
+        Activity a = newActivity("IT筛选-管理名单", 0);
+        newRegistration(newUser("student"), a, "approved");
+        newRegistration(newUser("student"), a, "rejected");
+
+        MvcResult r = mockMvc.perform(get("/api/registrations")
+                .param("activityId", String.valueOf(a.getId()))
+                .param("status", "approved")
+                .header("Authorization", bearer(newUser("admin")))).andReturn();
+        JsonNode list = json(r).get("data").get("list");
+        assertEquals(1, list.size());
+        assertEquals("approved", list.get(0).get("status").asText());
+    }
+
     // ================= 分页钳制 =================
 
     @Test

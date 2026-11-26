@@ -111,13 +111,16 @@ public class ApiRegistrationController {
     }
 
     @GetMapping("/my")
-    public Result<List<Registration>> my() {
+    public Result<List<Registration>> my(@RequestParam(required = false) String status) {
         LoginUser user = UserContext.get();
         if (user == null) {
             return Result.fail(401, "未登录");
         }
         LambdaQueryWrapper<Registration> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(Registration::getUserId, user.getId());
+        if (status != null && !status.trim().isEmpty()) {
+            wrapper.eq(Registration::getStatus, status.trim());
+        }
         wrapper.orderByDesc(Registration::getRegisterTime);
         List<Registration> registrationList = registrationService.list(wrapper);
 
@@ -239,10 +242,14 @@ public class ApiRegistrationController {
 
     @RequireAdmin
     @GetMapping
-    public Result<Map<String, Object>> list(@RequestParam(required = false) Integer activityId) {
+    public Result<Map<String, Object>> list(@RequestParam(required = false) Integer activityId,
+                                            @RequestParam(required = false) String status) {
         LambdaQueryWrapper<Registration> wrapper = Wrappers.lambdaQuery();
         if (activityId != null) {
             wrapper.eq(Registration::getActivityId, activityId);
+        }
+        if (status != null && !status.trim().isEmpty()) {
+            wrapper.eq(Registration::getStatus, status.trim());
         }
         wrapper.orderByDesc(Registration::getRegisterTime);
         List<Registration> registrationList = registrationService.list(wrapper);
@@ -278,6 +285,7 @@ public class ApiRegistrationController {
         data.put("list", registrationList);
         data.put("activities", activityList);
         data.put("activityId", activityId);
+        data.put("status", status);
         return Result.ok(data);
     }
 }

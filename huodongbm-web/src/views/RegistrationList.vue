@@ -14,7 +14,17 @@ const toast = useToast()
 const list = ref([])
 const activities = ref([])
 const currentActivityId = ref(route.query.activityId ? Number(route.query.activityId) : null)
+const statusFilter = ref(route.query.status || '')
 const loading = ref(true)
+
+// 报名状态分类筛选（值与后端 status 字段一致）
+const STATUS_OPTIONS = [
+  ['', '🎯 全部状态'],
+  ['registered', '⏳ 待审核'],
+  ['approved', '✅ 已通过'],
+  ['rejected', '❌ 已拒绝'],
+  ['cancelled', '🚫 已取消'],
+]
 
 const rejectVisible = ref(false)
 const rejectTarget = ref(null)
@@ -25,6 +35,7 @@ async function load() {
   try {
     const params = {}
     if (currentActivityId.value) params.activityId = currentActivityId.value
+    if (statusFilter.value) params.status = statusFilter.value
     const res = await getRegistrationList(params)
     list.value = res.data.list || []
     activities.value = res.data.activities || []
@@ -39,6 +50,7 @@ onMounted(load)
 function onFilterChange() {
   const query = {}
   if (currentActivityId.value) query.activityId = currentActivityId.value
+  if (statusFilter.value) query.status = statusFilter.value
   router.replace({ path: '/admin/registrations', query })
   load()
 }
@@ -96,9 +108,12 @@ async function handleReaudit(r) {
 
     <div class="toolbar">
       <div class="filter-group">
-        <select v-model.number="currentActivityId" @change="onFilterChange">
+        <select v-model.number="currentActivityId" @change="onFilterChange" aria-label="按活动筛选">
           <option :value="null">🎯 全部活动</option>
           <option v-for="a in activities" :key="a.id" :value="a.id">{{ a.title }}</option>
+        </select>
+        <select v-model="statusFilter" @change="onFilterChange" aria-label="按报名状态筛选">
+          <option v-for="[value, label] in STATUS_OPTIONS" :key="value" :value="value">{{ label }}</option>
         </select>
       </div>
     </div>

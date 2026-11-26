@@ -20,13 +20,24 @@ const totalPages = ref(0)
 const pageStart = ref(1)
 const pageEnd = ref(1)
 const keyword = ref(route.query.title || '')
+const statusFilter = ref(route.query.status || '')
 const loading = ref(true)
+
+// 活动状态分类筛选（值与后端 status 字段一致）
+const STATUS_OPTIONS = [
+  ['', '🎯 全部状态'],
+  ['published', '🔥 可报名'],
+  ['ongoing', '🚀 进行中'],
+  ['ended', '✅ 已结束'],
+  ['offline', '🚫 已下线'],
+]
 
 async function load() {
   loading.value = true
   try {
     const params = { page: route.query.page || 1 }
     if (route.query.title) params.title = route.query.title
+    if (route.query.status) params.status = route.query.status
     const res = await getActivityList(params)
     const d = res.data
     list.value = d.list
@@ -43,12 +54,26 @@ async function load() {
 }
 
 onMounted(load)
-watch(() => route.query, load)
+watch(() => route.query, (q) => {
+  keyword.value = q.title || ''
+  statusFilter.value = q.status || ''
+  load()
+})
 
-function doSearch() {
+function currentQuery() {
   const query = {}
   if (keyword.value.trim()) query.title = keyword.value.trim()
-  router.push({ path: route.path, query })
+  if (statusFilter.value) query.status = statusFilter.value
+  return query
+}
+
+function doSearch() {
+  router.push({ path: route.path, query: currentQuery() })
+}
+
+function onStatusChange() {
+  // 切换分类后回到第 1 页，避免停留在越界页码
+  router.push({ path: route.path, query: currentQuery() })
 }
 
 function goPage(p) {
@@ -89,7 +114,12 @@ const pageNumbers = () => {
       <div class="search-box">
         <input v-model="keyword" @keyup.enter="doSearch" placeholder="搜索感兴趣的活动..." />
         <button class="btn btn-primary" @click="doSearch">搜索</button>
-        <button v-if="keyword" class="btn btn-secondary" @click="keyword=''; router.push(route.path)">✕ 重置</button>
+        <button v-if="keyword || statusFilter" class="btn btn-secondary" @click="keyword=''; statusFilter=''; router.push(route.path)">✕ 重置</button>
+      </div>
+      <div class="filter-group">
+        <select v-model="statusFilter" @change="onStatusChange" aria-label="按活动状态筛选">
+          <option v-for="[value, label] in STATUS_OPTIONS" :key="value" :value="value">{{ label }}</option>
+        </select>
       </div>
       <button v-if="userStore.isAdmin" class="btn btn-primary" @click="router.push('/admin/activities/new')">➕ 发布新活动</button>
     </div>

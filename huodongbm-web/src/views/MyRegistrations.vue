@@ -10,12 +10,24 @@ import { confirm } from '../utils/confirm'
 const router = useRouter()
 const toast = useToast()
 const list = ref([])
+const statusFilter = ref('')
 const loading = ref(true)
+
+// 报名状态分类筛选（值与后端 status 字段一致）
+const STATUS_OPTIONS = [
+  ['', '🎯 全部状态'],
+  ['registered', '⏳ 待审核'],
+  ['approved', '✅ 已通过'],
+  ['rejected', '❌ 已拒绝'],
+  ['cancelled', '🚫 已取消'],
+]
 
 async function load() {
   loading.value = true
   try {
-    const res = await getMyRegistrations()
+    const params = {}
+    if (statusFilter.value) params.status = statusFilter.value
+    const res = await getMyRegistrations(params)
     list.value = res.data || []
   } catch (e) {
     toast.error(e.message)
@@ -44,6 +56,14 @@ async function handleCancel(r) {
       <div class="page-hero-content">
         <h2>🎫 我的报名</h2>
         <p>查看和管理你报名的所有精彩活动～</p>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="filter-group">
+        <select v-model="statusFilter" @change="load" aria-label="按报名状态筛选">
+          <option v-for="[value, label] in STATUS_OPTIONS" :key="value" :value="value">{{ label }}</option>
+        </select>
       </div>
     </div>
 

@@ -89,10 +89,14 @@ public class ApiActivityController {
 
     @GetMapping
     public Result<Map<String, Object>> list(@RequestParam(required = false) String title,
+                                            @RequestParam(required = false) String status,
                                             @RequestParam(name = "page", defaultValue = "1") int page) {
         LambdaQueryWrapper<Activity> wrapper = Wrappers.lambdaQuery();
         if (title != null && !title.trim().isEmpty()) {
             wrapper.like(Activity::getTitle, title);
+        }
+        if (status != null && !status.trim().isEmpty()) {
+            wrapper.eq(Activity::getStatus, status.trim());
         }
         wrapper.orderByDesc(Activity::getCreateTime).orderByDesc(Activity::getId);
 
@@ -119,6 +123,7 @@ public class ApiActivityController {
         data.put("pageStart", Math.max(1, currentPage - 2));
         data.put("pageEnd", Math.min(totalPages, currentPage + 2));
         data.put("title", title);
+        data.put("status", status);
         return Result.ok(data);
     }
 

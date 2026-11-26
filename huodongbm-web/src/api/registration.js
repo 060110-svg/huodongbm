@@ -4,8 +4,8 @@ export function joinRegistration(activityId) {
   return request.post('/registrations/join', null, { params: { activityId } })
 }
 
-export function getMyRegistrations() {
-  return request.get('/registrations/my')
+export function getMyRegistrations(params) {
+  return request.get('/registrations/my', { params })
 }
 
 export function cancelRegistration(id) {
