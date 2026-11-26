@@ -6,8 +6,8 @@ const routes = [
   {
     path: '/',
     redirect: (to) => {
-      const token = localStorage.getItem('token') || ''
-      const user = JSON.parse(localStorage.getItem('user') || 'null')
+      const token = sessionStorage.getItem('token') || ''
+      const user = JSON.parse(sessionStorage.getItem('user') || 'null')
       if (!token) return '/login'
       return user?.role === 'admin' ? '/dashboard' : '/home'
     },

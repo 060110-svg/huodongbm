@@ -106,43 +106,47 @@ async function handleReaudit(r) {
     <div v-if="loading" class="view-loading">加载中...</div>
     <template v-else>
       <table v-if="list.length">
-        <tr>
-          <th>ID</th>
-          <th>报名用户</th>
-          <th>活动名称</th>
-          <th>报名时间</th>
-          <th>状态</th>
-          <th>备注</th>
-          <th>操作</th>
-        </tr>
-        <tr v-for="r in list" :key="r.id">
-          <td>{{ r.id }}</td>
-          <td>
-            <div style="font-weight:600;color:#1d1d1f;">{{ r.realName || '-' }}</div>
-            <div style="font-size:12px;color:#86868b;">@{{ r.username }}</div>
-          </td>
-          <td style="font-weight:600;">{{ r.activityTitle }}</td>
-          <td>{{ fmtDate(r.registerTime) }}</td>
-          <td><StatusTag :status="r.status" /></td>
-          <td>{{ r.remark || '-' }}</td>
-          <td>
-            <template v-if="r.status === 'registered'">
-              <button class="btn btn-success" style="padding:7px 16px;font-size:12px;margin-right:8px;" @click="handleApprove(r)">✓ 通过</button>
-              <button class="btn btn-danger" style="padding:7px 16px;font-size:12px;" @click="openReject(r)">✗ 拒绝</button>
-            </template>
-            <template v-else-if="r.status === 'approved'">
-              <button class="btn btn-danger" style="padding:7px 16px;font-size:12px;margin-right:8px;" @click="openReject(r)">✗ 拒绝</button>
-              <button class="btn btn-primary" style="padding:7px 16px;font-size:12px;" @click="handleReaudit(r)">🔄 重新审核</button>
-            </template>
-            <template v-else-if="r.status === 'rejected'">
-              <button class="btn btn-success" style="padding:7px 16px;font-size:12px;margin-right:8px;" @click="handleApprove(r)">✓ 通过</button>
-              <button class="btn btn-primary" style="padding:7px 16px;font-size:12px;" @click="handleReaudit(r)">🔄 重新审核</button>
-            </template>
-            <template v-else>
-              <span style="color:#ccc;">—</span>
-            </template>
-          </td>
-        </tr>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>报名用户</th>
+            <th>活动名称</th>
+            <th>报名时间</th>
+            <th>状态</th>
+            <th>备注</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="r in list" :key="r.id">
+            <td>{{ r.id }}</td>
+            <td>
+              <div style="font-weight:600;color:#1d1d1f;">{{ r.realName || '-' }}</div>
+              <div style="font-size:12px;color:#86868b;">@{{ r.username }}</div>
+            </td>
+            <td style="font-weight:600;">{{ r.activityTitle }}</td>
+            <td>{{ fmtDate(r.registerTime) }}</td>
+            <td><StatusTag :status="r.status" /></td>
+            <td>{{ r.remark || '-' }}</td>
+            <td>
+              <template v-if="r.status === 'registered'">
+                <button class="btn btn-success" style="padding:7px 16px;font-size:12px;margin-right:8px;" @click="handleApprove(r)">✓ 通过</button>
+                <button class="btn btn-danger" style="padding:7px 16px;font-size:12px;" @click="openReject(r)">✗ 拒绝</button>
+              </template>
+              <template v-else-if="r.status === 'approved'">
+                <button class="btn btn-danger" style="padding:7px 16px;font-size:12px;margin-right:8px;" @click="openReject(r)">✗ 拒绝</button>
+                <button class="btn btn-primary" style="padding:7px 16px;font-size:12px;" @click="handleReaudit(r)">🔄 重新审核</button>
+              </template>
+              <template v-else-if="r.status === 'rejected'">
+                <button class="btn btn-success" style="padding:7px 16px;font-size:12px;margin-right:8px;" @click="handleApprove(r)">✓ 通过</button>
+                <button class="btn btn-primary" style="padding:7px 16px;font-size:12px;" @click="handleReaudit(r)">🔄 重新审核</button>
+              </template>
+              <template v-else>
+                <span style="color:#ccc;">—</span>
+              </template>
+            </td>
+          </tr>
+        </tbody>
       </table>
 
       <div v-else class="empty">

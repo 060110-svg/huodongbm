@@ -50,24 +50,28 @@ async function handleCancel(r) {
     <div v-if="loading" class="view-loading">加载中...</div>
     <template v-else>
       <table v-if="list.length">
-        <tr>
-          <th>报名时间</th>
-          <th>活动标题</th>
-          <th>状态</th>
-          <th>备注</th>
-          <th>操作</th>
-        </tr>
-        <tr v-for="r in list" :key="r.id">
-          <td>{{ fmtDate(r.registerTime) }}</td>
-          <td style="font-weight:600;color:#1d1d1f;">{{ r.activityTitle || '-' }}</td>
-          <td><StatusTag :status="r.status" /></td>
-          <td>{{ r.remark || '-' }}</td>
-          <td>
-            <a style="color:#667eea;text-decoration:none;margin-right:14px;font-weight:600;" @click="router.push(`/activities/${r.activityId}`)">查看活动</a>
-            <button v-if="['registered','approved'].includes(r.status)" class="cancel-reg-btn" @click="handleCancel(r)">取消报名</button>
-            <a v-if="['rejected','cancelled'].includes(r.status)" style="color:#667eea;text-decoration:none;margin-right:14px;font-weight:600;" @click="router.push(`/activities/${r.activityId}`)">重新报名</a>
-          </td>
-        </tr>
+        <thead>
+          <tr>
+            <th>报名时间</th>
+            <th>活动标题</th>
+            <th>状态</th>
+            <th>备注</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="r in list" :key="r.id">
+            <td>{{ fmtDate(r.registerTime) }}</td>
+            <td style="font-weight:600;color:#1d1d1f;">{{ r.activityTitle || '-' }}</td>
+            <td><StatusTag :status="r.status" /></td>
+            <td>{{ r.remark || '-' }}</td>
+            <td>
+              <a style="color:#667eea;text-decoration:none;margin-right:14px;font-weight:600;" @click="router.push(`/activities/${r.activityId}`)">查看活动</a>
+              <button v-if="['registered','approved'].includes(r.status)" class="cancel-reg-btn" @click="handleCancel(r)">取消报名</button>
+              <a v-if="['rejected','cancelled'].includes(r.status)" style="color:#667eea;text-decoration:none;margin-right:14px;font-weight:600;" @click="router.push(`/activities/${r.activityId}`)">重新报名</a>
+            </td>
+          </tr>
+        </tbody>
       </table>
 
       <div v-else class="empty">
